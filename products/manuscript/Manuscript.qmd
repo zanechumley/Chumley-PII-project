@@ -1,7 +1,7 @@
 ---
-title: "Example Manuscript Template for a Data Analysis Project"
+title: "Predicting Consumer Rating from Review Text"
 subtitle: ""
-author: Andreas Handel
+author: Zane Chumley
 date: "`r Sys.Date()`"
 format:
   docx:
@@ -12,10 +12,6 @@ bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/apa.csl
 ---
 
-The structure below is one possible setup for a data analysis project (including the course project). For a manuscript, adjust as needed. 
-You don't need to have exactly these sections, but the content covering those sections should be addressed.
-
-This uses MS Word as output format. [See here](https://quarto.org/docs/output-formats/ms-word.html) for more information. You can switch to other formats, like html or pdf. See [the Quarto documentation](https://quarto.org/) for other formats.
 
 
 ```{r, echo=FALSE, message=FALSE}
@@ -27,22 +23,38 @@ library(knitr)
 
 
 # Summary/Abstract
-_Write a summary of your project._
 
+A product review typically contains a rating and a description.  The rating is categorical, or sometimes ordinal, but it is always subjective.  The description allows the reviewer a more free-form way to express their experiences and feelings about the product.
 
+Can a machine predict the rating based on the description?
 {{< pagebreak >}}
 
 
 # Introduction 
 
 ## General Background Information
-_Provide enough background on your topic that others can understand the why and how of your analysis_ 
+
+Commentary has become a staple on the Internet.  Youtube videos, news articles, and posts/replies on social media are the tip of the iceberg that seek, and receive, feedback from a community transcending language and culture.
+
+Product reviews are practically as old as products themselves.  People tend to value their own opinion and tend to want others to agree with them. Some firms rely on extensive (and expensive) market research to assess the viability of a potential product.  However, consumers prefer much simpler schemes to make purchasing decisions.  Who can forget the Siskel and Ebert method of reviewing movies with a declaration of "Thumbs up!" or "Thumbs down!"?
+
+The amalgamation of the human desire to express and influence with the exponential growth of information dissemination facilitated by the Internet has yielded an immense volume of online product reviews.
 
 ## Description of data and data source
-_Describe what the data is, what it contains, where it is from, etc. Eventually this might be part of a methods section._
+
+The data is user-contributed product reviews posted to Amazon and collected by McAuley Lab.  The data contains control information, such as a product ID number and a reviewer ID, plus a rating, a title, and a description.
+
+There are a staggering 571.1M product reviews in total, so there is a possibility the criteria for inclusion may become more specific: attrition resultant from data cleaning may be insufficient to reduce the data to a manageable size. 
+
+The data will be retrieved from: https://amazon-reviews-2023.github.io/
 
 ## Questions/Hypotheses to be addressed
-_State the research questions you plan to answer with this analysis._
+
+It is an expectation that a "positive vocabulary", "negative vocabulary", and perhaps a "neutral vocabulary" can be extracted from the content of the reviews. 
+
+Can machines predict ratings based on review content?
+
+Do humans tend to exaggerate the polarity of their ratings based on the content of their review?
 
 To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above and have the right bibtex key. Then you can include like this:
 
