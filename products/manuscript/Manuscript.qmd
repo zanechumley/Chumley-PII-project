@@ -20,87 +20,94 @@ library(here)
 library(knitr)
 ```
 
-
-
 # Summary/Abstract
 
 A product review typically contains a rating and a description.  The rating is categorical, or sometimes ordinal, but it is always subjective.  The description allows the reviewer a more free-form way to express their experiences and feelings about the product.
 
-Can a machine predict the rating based on the description?
-{{< pagebreak >}}
-
+Can a machine predict the rating based on the text in the description?
 
 # Introduction 
 
 ## General Background Information
 
-Commentary has become a staple on the Internet.  Youtube videos, news articles, and posts/replies on social media are the tip of the iceberg that seek, and receive, feedback from a community transcending language and culture.
+Commentary has become a staple on the Internet.  Youtube videos, news articles, and posts/replies on social media are the tip of the iceberg that seek, and receive, feedback from a community transcending language, religion, income, generation, and culture.
 
-Product reviews are practically as old as products themselves.  People tend to value their own opinion and tend to want others to agree with them. Some firms rely on extensive (and expensive) market research to assess the viability of a potential product.  However, consumers prefer much simpler schemes to make purchasing decisions.  Who can forget the Siskel and Ebert method of reviewing movies with a declaration of "Thumbs up!" or "Thumbs down!"?
+Product reviews are practically as old as products themselves.  People tend to value their own opinion and tend to want others to agree with them. Some firms rely on extensive (and expensive) market research to assess the viability of a potential product.  However, consumers prefer much simpler schemes to make purchasing decisions.  Who can forget the Siskel and Ebert method of reviewing movies with a simple declaration of "Thumbs up!" or "Thumbs down!"?
 
 The amalgamation of the human desire to express and influence with the exponential growth of information dissemination facilitated by the Internet has yielded an immense volume of online product reviews.
 
 ## Description of data and data source
 
-The data is user-contributed product reviews posted to Amazon and collected by McAuley Lab.  The data contains control information, such as a product ID number and a reviewer ID, plus a rating, a title, and a description.
-
-There are a staggering 571.1M product reviews in total, so there is a possibility the criteria for inclusion may become more specific: attrition resultant from data cleaning may be insufficient to reduce the data to a manageable size. 
-
-The data will be retrieved from: https://amazon-reviews-2023.github.io/
+The data is user-contributed product reviews posted to Amazon and collected by McAuley Lab.  The data contains control information, such as a product ID number and a reviewer ID, plus a rating, a title, and a description, among other metadata.  The rating and the review (description) are the elements of interest to this study.
 
 ## Questions/Hypotheses to be addressed
 
-It is an expectation that a "positive vocabulary", "negative vocabulary", and perhaps a "neutral vocabulary" can be extracted from the content of the reviews. 
+It is an expectation that a "positive vocabulary", "negative vocabulary", and perhaps a "neutral vocabulary" can be extracted from the content of the reviews.  Additionally, nuances such as negations (i.e., "not") and qualifiers (i.e., "too") are expected to appear in reviews as well.  
 
-Can machines predict ratings based on review content?
+Can machines predict a review rating based on the associated review text?
 
 Do humans tend to exaggerate the polarity of their ratings based on the content of their review?
 
-To cite other work (important everywhere, but likely happens first in introduction), make sure your references are in the bibtex file specified in the YAML header above and have the right bibtex key. Then you can include like this:
-
-Examples of reproducible research projects can for instance be found in [@mckay2020; @mckay2020a].
-
-
-
-{{< pagebreak >}}
-
-
 # Methods 
 
-_Describe your methods. That should describe the data, the cleaning processes, and the analysis approaches. You might want to provide a shorter description here and all the details in the supplement._
+In its native format, the review data downloads as compressed folders, each containing one (1) .jsonl file (i.e., "JSON lite").  The folders, and respective contained files, includes reviews for one (1) of 34 different product categories.  Each folder will be decompressed, the child files' data loaded, and then saved into a single .csv file for subsequent processing.
 
+Only two (2) fields from the original .jsonl data will be retained for this study: 
 
-## Schematic of workflow
++ **Review** - The subjective text the product reviewer writes to support/justify her/his rating of the product.
++ **Rating** - A reviewer-provided indicator of to what extent the product met the reviewer's expectations.
 
-Sometimes you might want to show a schematic diagram/figure that was not created with code (if you can do it with code, do it). @fig-schematic is an example of some - completely random/unrelated - schematic that was generated with Biorender.
-We store those figures in the `assets` folder.
+NOTE: While the ratings are numerical integer values ranging from 1 to 5, the ratings will be considered categorical, as opposed to ordinal, for the purposes of this study.
 
-```{r}
-#| label: fig-schematic
-#| fig-cap: "A figure that is manually generated and shows some overview/schematic. This has nothing to do with the data, it's just a random one from one of our projects I found and placed here."
-#| echo: FALSE
-knitr::include_graphics(here("assets","antigen-recognition.png"))
-```
+Once the data is loaded, the text of the reviews will be analyzed.  Individual words will be classified as one of the following:
 
++ **Affirmation** - a word indicating a positive response to the product.
++ **Refutation** - a word indicating a negative response to the product.
++ **Countering** - a word reversing the impact of the immediately following qualifier/affirmation/refutation.
++ **Qualifier** - a word modifying the impacts of the next affirmation/refutation.
++ **Inconsequential** a word with no anticipated impact on the response to the product.
 
+All words other than Inconsequential will be stored and subsequently scored on a scale of -1 to +1.  Reviews will then be quantified.  The formula used in scoring will consider all affirmation, refutation, countering, and qualifier words in the review.
 
+Once the reviews are scored, the dataset will be broken into training and testing subsets.  Several training models will be employed on the training data and evaluated for their ability to accurately predict the ratings based on the reviews.  
 
 ## Data aquisition
-_As applicable, explain where and how you got the data. If you directly import the data from an online source, you can combine this section with the next._
 
+The data was retrieved on June 18th, 2024 from: https://amazon-reviews-2023.github.io/
+
+There are a staggering 571.1M product reviews in total, so there is a possibility the criteria for inclusion may become more specific: attrition resultant from data cleaning may be insufficient to reduce the data to a manageable size. 
 
 ## Data import and cleaning
-_Write code that reads in the file and cleans it so it's ready for analysis. Since this will be fairly long code for most datasets, it might be a good idea to have it in one or several R scripts. If that is the case, explain here briefly what kind of cleaning/processing you do, and provide more details and well documented code somewhere (e.g. as supplement in a paper). All materials, including files that contain code, should be commented well so everyone can follow along._
 
+In its original retrieved format, the data is spread across 34 compressed folders and occupies 71.9Gb of hard drive space.  The data import will, therefore, have to consider available storage capacity in its import and cleaning.
+
+One at a time, each compressed folder was decompressed, resulting in a normal (noncompressed) folder containing a .jsonl (JSON lite) file sharing a name with the parent folder.  The .jsonl file was then processed, line by line, pulling out only the rating and the review text.  The rating and review was then saved to a .csv file.
+
+Initially, all of the data was going to be imported, then written to the .csv file.  However, this design option proved far too inefficient: whereas it only took about 15 seconds to process the first 100,000 reviews, later on 100,000 reviews were taking 7 or 8 hours to process.  The next design option was to read a line from the data and then write a line to the .csv file.   This, too, proved very inefficient, although not as inefficient overall as the first design option.
+
+After piloting a few "blended" design options, it was found that reading 100,000 rows of source data, and then writing 100,000 lines to the .csv file, proved efficient enough.  This strategy allowed for processing 100,000 rows in about fifteen (15) seconds (as the first design option did, at least at first), but showed essentially no degradation of performance over time: even after 20M rows, processing continued at about 100,000 rows in 15-16 seconds.
+
+So ratings and reviews were written in blocks of 100,000 rows to the .csv file.  Any remaining reviews and ratings after the entire input file had been processed were also written to the .csv file.  After the contents of the input file was processed and its retained contents stored in the .csv file, the input file and its decompressed folder (but not the compressed folder) was deleted to conserve storage capacity. 
 
 ## Statistical analysis
-_Explain anything related to your statistical analyses._
 
+Once the pertinent data (ratings and reviews) had been harvested and stored in the .csv file, the reviews were scored as indicated above.  The set of scores and ratings were then subdivided (approximately 75%/25%) into training and testing subsets.  Multiple machine training techniques were employed against the training dataset to see which ones can best predict the ratings in the testing dataset.  These techniques included:
+
++ Linear Model Regression (LM)
++ Partial Least Squares (PLS)
++ Ridge
++ Elastic Net (eNet)
++ K-Nearest Neighbors (kNN)
++ Multivariate Adaptive Regression Splines (MARS)
+
+The prediction accuracy of these models were compared and results analyzed. 
 
 {{< pagebreak >}}
 
 
 # Results
+
+NOTE: This section will be revised in future updates.  The boilerplate is preserved to guide the construction of this section at the appropriate time. 
 
 ## Exploratory/Descriptive analysis
 
@@ -119,12 +126,9 @@ resulttable=readRDS("../../results/tables/summarytable.rds")
 knitr::kable(resulttable)
 ```
 
-
-
 ## Basic statistical analysis
 
 _To get some further insight into your data, if reasonable you could compute simple statistics (e.g. simple models with 1 predictor) to look for associations between your outcome(s) and each individual predictor variable. Though note that unless you pre-specified the outcome and main exposure, any "p<0.05 means statistical significance" interpretation is not valid._
-
 
 @fig-result shows a scatterplot figure produced by one of the R scripts.
 
@@ -134,7 +138,6 @@ _To get some further insight into your data, if reasonable you could compute sim
 #| echo: FALSE
 knitr::include_graphics(here("results","figures","height-weight-stratified.png"))
 ```
-
 
 ## Full analysis
 
@@ -150,11 +153,11 @@ resulttable2 = readRDS(here("results","tables","resulttable2.rds"))
 knitr::kable(resulttable2)
 ```
 
-
 {{< pagebreak >}}
 
-
 # Discussion
+
+NOTE: This section will be revised in future updates.  The boilerplate is preserved to guide the construction of this section at the appropriate time. 
 
 ## Summary and Interpretation
 _Summarize what you did, what you found and what it means._
@@ -177,6 +180,8 @@ Note that this cited reference will show up at the end of the document, the refe
 {{< pagebreak >}}
 
 # References
+
+NOTE: This section will be revised in future updates.  The boilerplate is preserved to guide the construction of this section at the appropriate time. 
 
 
 
